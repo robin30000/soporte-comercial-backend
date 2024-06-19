@@ -64,7 +64,6 @@ class ventaInstale
 
                         if ($stmt->rowCount() == 1) {
                             $data = array('state' => 1, 'msj' => 'La solicitud se realizo exitosamente');
-                            require_once 'Contador.php';
                         } else {
                             $data = array('state' => 0, 'msj' => 'Ha ocurrido un error interno intentalo nuevamente en unos minutos');
                         }
@@ -198,9 +197,8 @@ class ventaInstale
         echo json_encode($response);
     }
 
-    public function export($data)
-    {
-        try {
+    public function export($data){
+        try{
             $stmt = $this->_DB->seguimiento()->prepare("SELECT
                                                     pedido,
                                                     observacion_gestion,

@@ -1,6 +1,7 @@
 <?php
 
 require_once '../Class/db.php';
+require_once '../Class/Ldap.php';
 
 class modelAuth
 {
@@ -19,10 +20,17 @@ class modelAuth
             $Login = $data['username'];
             $pass = $data['password'];
 
+            $ldapAuthenticator = new LdapAuthenticator();
+            $result = $ldapAuthenticator->authenticate($Login, $pass);
+            if ($result != "Login exitoso.") {
+                echo json_encode(['state' => false, 'msj' => $result]);
+                die();
+            }
+
             $pass = md5($pass);
 
-            $stmt = $this->_DB->SeguimientoPedidos()->prepare("SELECT Login, Perfil FROM usuario WHERE Login = :login and Pass = :pass");
-            $stmt->execute(array(':login' => $data['username'], ':pass' => md5($data['password'])));
+            $stmt = $this->_DB->SeguimientoPedidos()->prepare("SELECT Login, Perfil FROM usuario WHERE Login = :login");
+            $stmt->execute(array(':login' => $Login));
             $stmt->execute();
             if ($stmt->rowCount()) {
                 $user = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -44,7 +52,7 @@ class modelAuth
                                                                             m.menu, s.menu;");
                 $stmt->execute(array(':perfil' => $user[0]['Perfil']));
 
-                if($stmt->rowCount()){
+                if ($stmt->rowCount()) {
                     $menu = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     $data = array();
                     $data['Perfil'] = $user[0]['Perfil'];
@@ -52,10 +60,9 @@ class modelAuth
                     $data['menu'] = $menu;
 
                     $response = array('state' => true, 'data' => $data);
-                }else{
+                } else {
                     $response = array('state' => false, 'msj' => 'No se encontraron menu activos para este perfil');
                 }
-
 
 
             } else {

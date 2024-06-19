@@ -175,4 +175,48 @@ class Usuario
             var_dump($e);
         }
     }
+
+    public function guardaSolicitud($data)
+    {
+        try {
+
+            //$pagina = 'Soporte comercial (GESCOM)';
+            $pagina = 'soporte-comercial';
+            $cc = trim($data['cc']);
+            $email = trim($data['email']);
+            $nombre = str_replace(' ', '-', $data['nombre']);;
+            $observacion = str_replace(' ', '-', $data['observacion']);;
+            $usuario = trim($data['usuario']);
+
+            $datos = ['email' => $email, 'plataforma' => $pagina, 'cc' => $cc, 'nombre' => $nombre, 'usuario' => $usuario, 'observacion' => $observacion];
+
+            $json_data = json_encode($datos);
+            $url = "http://10.100.66.254/BB8/contingencias/Buscar/guardaSolicitud/$json_data";
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_URL, "$url");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
+            $data = curl_exec($ch);
+            curl_close($ch);
+
+            $dataclick = json_decode($data, true);
+
+            $data = (object)$dataclick;
+
+            if ($data->state) {
+                $response = ['state' => true, 'msg' => $data->msg];
+            } else {
+                $response = ['state' => false, 'msg' => $data->msg];
+            }
+
+            return $response;
+
+        } catch (PDOException $th) {
+            var_dump($th->getMessage());
+        }
+    }
 }
